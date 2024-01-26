@@ -1,4 +1,7 @@
 const signUpModel = require("../Models/signupModel");
+const userVerification = require("../Models/userVerification");
+const sendEmail = require("../utils/sendEmail");
+const crypto = require("crypto");
 const jwtToken = require("../utils/generateAuthToken");
 const { USER_MESSAGE } = require("../utils/constants");
 const {
@@ -62,6 +65,7 @@ const signUpUser = async (req, res) => {
     const token = (await jwtToken.jwtToken(email)) || null;
 
     const reqBodyParams = {
+      _id: Date.now(),
       username: usernameTimestamp,
       email,
       phoneNumber,
@@ -220,18 +224,81 @@ const deleteUserByEmailOrPhn = async (req, res) => {
 };
 const userForgetPassword = async (req, res) => {
   try {
-    let { email, phoneNumber } = req?.query;
-    const query = { $or: [{ email }, { phoneNumber }] };
+    let { email } = req?.query;
+    // Check for missing keys
+    const expectedKeys = {
+      email,
+    };
+    const missingKeys = [];
+    for (let param in expectedKeys) {
+      if (!expectedKeys[param]) {
+        missingKeys.push(param);
+      }
+    }
+    if (missingKeys.length > 0) {
+      return res
+        .status(400)
+        .json({ error: `Missing required keys: ${missingKeys.join(", ")}` });
+    }
+    const query = { email };
     const results = await signUpModel.find(query);
-    if (results.length === 0) {
+    if (results.length == 0) {
       return res
         .status(400)
         .json({ error: USER_NOT_FOUND_ERROR, message: SIGN_UP_MSG });
     } else {
-      res.status(200).json(results);
+      let token = await userVerification.findOne({ userId: results[0]._id });
+      if (!token) {
+        token = await userVerification.create({
+          userId: results[0]._id,
+          token: crypto.randomBytes(32).toString("hex"),
+        });
+      }
+      const link = `${process.env.BASE_URL}/user/password-reset/${results[0]._id}/${token.token}`;
+      await sendEmail(results[0].email, "Password reset", link);
+      res.status(200).json({
+        outcome: "success",
+        message: "password reset link sent to your email account",
+      });
     }
   } catch (e) {
     return res.status(400).send({ message: e });
+  }
+};
+
+const passwordReset = async (req, res) => {
+  try {
+    const existingUser = await signUpModel.findById(req.params.userId);
+    if (!existingUser)
+      return res
+        .status(400)
+        .send({ outcome: "Failure", message: "invalid link or expired" });
+
+    const userVerified = await userVerification.findOne({
+      userId: existingUser._id,
+      token: req.params.token,
+    });
+    if (!userVerified)
+      return res
+        .status(400)
+        .send({ outcome: "Failure", message: "Invalid link or expired" });
+
+    await signUpModel.updateOne(
+      { _id: req.params.userId }, // Filter
+      {
+        $set: {
+          newPassword: req.body.password,
+          reEnterPassword: req.body.password,
+        },
+      }
+    );
+
+    await userVerification.deleteOne({ userId: req.params.userId });
+    res
+      .status(200)
+      .send({ outcome: "success", message: "password reset sucessfully !!!" });
+  } catch (error) {
+    res.send({ outcome: "failed", message: "An error occured" });
   }
 };
 module.exports = {
@@ -241,4 +308,5 @@ module.exports = {
   userForgetPassword,
   getToken,
   deleteUserByEmailOrPhn,
+  passwordReset,
 };
