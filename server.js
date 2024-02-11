@@ -14,6 +14,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.use("/user", router);
+app.use("/game", router);
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");

@@ -136,7 +136,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-const getUserByEmailOrPhn = async (req, res) => {
+const getUserByEmailOrPhn = async (req, res, data) => {
   try {
     const { email, phoneNumber } = req.query;
     const token = req.headers[AUTHORIZATION]?.split(" ")[1];
@@ -165,12 +165,14 @@ const getUserByEmailOrPhn = async (req, res) => {
       email: userEmail,
       phoneNumber: userPhoneNumber,
       newPassword,
+      cartAdded,
     } = results[0];
     const resParams = {
       username,
       email: userEmail,
       phoneNumber: userPhoneNumber,
       password: newPassword,
+      cartAdded: cartAdded ?? {},
     };
 
     res.status(200).json(resParams);
