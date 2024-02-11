@@ -1,4 +1,5 @@
 const signUpController = require("../Controllers/signUpController");
+const gameListController = require("../Controllers/gameListController");
 const router = require("express").Router();
 //SIGNUP
 router.post("/signUp", signUpController.signUpUser);
@@ -15,5 +16,14 @@ router.delete("/deleteUser", signUpController.deleteUserByEmailOrPhn);
 router.post("/forgot-password", signUpController.userForgetPassword);
 //RESET PASSWORD
 router.post("/password-reset/:userId/:token", signUpController.passwordReset);
+
+//GET LIST OF GAMES
+router.get("/list/:limit", gameListController.getGameList);
+
+//ADD GAME LIST TO CART
+router.post("/add/user", gameListController.addCartGame);
+
+//DELETE GAME LIST FROM CART
+router.delete("/delete/user", gameListController.deleteCartGame);
 
 module.exports = router;
