@@ -19,7 +19,7 @@ app.use("/game", router);
 //process env
 
 const PORT = process.env.PORT || 3000;
-
+console.log("port: " + PORT);
 app.listen(PORT, () => {
   console.log("Server is running on port 3000");
 });
