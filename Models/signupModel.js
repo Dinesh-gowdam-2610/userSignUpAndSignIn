@@ -45,10 +45,10 @@ const userSchema = new mongoose.Schema({
   token: {
     type: String,
   },
-  cartAdded : {
+  cartAdded: {
     type: Array,
-    default: []
-  }
+    default: [],
+  },
 });
 
 // Create and export the User model

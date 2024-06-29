@@ -9,7 +9,6 @@ const jwtToken = async (email) => {
   };
 
   const token = jwt.sign(data, jwtSecretKey);
-  console.log("token", token);
   return token;
 };
 module.exports = {
