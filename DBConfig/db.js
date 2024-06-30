@@ -1,15 +1,10 @@
 // db.js
 const mongoose = require("mongoose");
 
-
 // Replace 'your_database_url' with your MongoDB connection string
 const dbUrl = process.env.DB_URL;
 
-mongoose.connect(dbUrl, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-
+mongoose.connect(dbUrl);
 
 const db = mongoose.connection;
 
