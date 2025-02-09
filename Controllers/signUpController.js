@@ -360,6 +360,17 @@ const updateUser = async (req, res) => {
   }
 };
 
+// get default token function without user info
+const getDefaultToken = async (req, res) => {
+  try {
+    const token = (await jwtToken.jwtToken(process.env.DEFAULT_EMAIL_ID)) || null;
+
+    res.status(200).json({ token });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   signUpUser,
   loginUser,
@@ -370,4 +381,5 @@ module.exports = {
   passwordReset,
   getAllUsers,
   updateUser,
+  getDefaultToken,
 };
