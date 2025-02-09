@@ -363,7 +363,8 @@ const updateUser = async (req, res) => {
 // get default token function without user info
 const getDefaultToken = async (req, res) => {
   try {
-    const token = (await jwtToken.jwtToken(process.env.DEFAULT_EMAIL_ID)) || null;
+    const token =
+      (await jwtToken.jwtToken(process.env.DEFAULT_EMAIL_ID)) || null;
 
     res.status(200).json({ token });
   } catch (error) {
