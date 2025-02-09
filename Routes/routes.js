@@ -6,8 +6,13 @@ router.post("/signUp", signUpController.signUpUser);
 
 //LOGIN
 router.post("/login", signUpController.loginUser);
+// GET ALL USERS
+router.get("/getAllUsers", signUpController.getAllUsers);
 //GET USER DETAILS
 router.post("/getUser", signUpController.getUserByEmailOrPhn);
+
+//UPDATE USER
+router.put("/updateUser", signUpController.updateUser);
 //GET TOKEN
 router.get("/getUserToken", signUpController.getToken);
 //DELETE USER

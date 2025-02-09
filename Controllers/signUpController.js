@@ -80,21 +80,21 @@ const signUpUser = async (req, res) => {
       message: USER_CREATED,
     });
   } catch (error) {
-    if (error._message) {
+    if (error?._message) {
       return res.status(400).json({
-        message: `${error._message.replace(
+        message: `${error?._message.replace(
           "Signup",
           "Phone number"
         )}: must be 10 characters`,
       });
-    } else if (error.keyPattern) {
+    } else if (error?.keyPattern) {
       return res.status(400).json({
-        message: `${Object.keys(error.keyValue).join(", ")}: must be unique`,
+        message: `${Object.keys(error?.keyValue).join(", ")}: must be unique`,
       });
     } else {
       return res
-        .status(error.code || 500)
-        .json({ message: error.message || INTERNAL_SERVER_ERROR });
+        .status(error.code || 400)
+        .json({ message: error?.message || INTERNAL_SERVER_ERROR });
     }
   }
 };
@@ -112,7 +112,7 @@ const loginUser = async (req, res) => {
     const { email, phoneNumber, password } = req.body;
     const query = { $or: [{ email }, { phoneNumber }] };
     const results = await signUpModel.find(query);
-
+    console.log("login results", results);
     if (results.length === 0) {
       return res
         .status(404)
@@ -195,6 +195,25 @@ const getToken = async (req, res) => {
     }
   } catch (e) {
     return res.status(400).send({ message: e });
+  }
+};
+
+const getAllUsers = async (req, res) => {
+  try {
+    const token = req.headers[AUTHORIZATION]?.split(" ")[1];
+
+    if (!token) {
+      return res.status(400).json({ message: INVALID_AUTHORIZATION });
+    }
+
+    jwt.verify(token, jwtSecretKey);
+    const results = await signUpModel
+      .find({})
+      .select("username email phoneNumber");
+    console.log("get all users", results);
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -303,6 +322,44 @@ const passwordReset = async (req, res) => {
     res.send({ outcome: "failed", message: "An error occured" });
   }
 };
+const updateUser = async (req, res) => {
+  try {
+    const { email, username, phoneNumber } = req.body;
+    const token = req.headers[AUTHORIZATION]?.split(" ")[1];
+
+    if (!token) {
+      return res.status(400).json({ message: INVALID_AUTHORIZATION });
+    }
+
+    const verified = jwt.verify(token, jwtSecretKey);
+
+    if (!verified) {
+      return res.status(401).json({ message: INVALID_AUTHORIZATION });
+    }
+
+    const query = { email };
+    const update = { username, phoneNumber, email };
+    const options = { new: true };
+
+    const updatedUser = await signUpModel
+      .findOneAndUpdate(query, update, options)
+      .select("username email phoneNumber");
+
+    console.log("updatedUser", updatedUser);
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: USER_NOT_FOUND_ERROR });
+    }
+
+    res.status(200).json({
+      message: "User updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   signUpUser,
   loginUser,
@@ -311,4 +368,6 @@ module.exports = {
   getToken,
   deleteUserByEmailOrPhn,
   passwordReset,
+  getAllUsers,
+  updateUser,
 };
