@@ -1,6 +1,11 @@
 const signUpController = require("../Controllers/signUpController");
 const gameListController = require("../Controllers/gameListController");
 const router = require("express").Router();
+
+//default api token
+
+router.get("/token", signUpController.getDefaultToken);
+
 //SIGNUP
 router.post("/signUp", signUpController.signUpUser);
 
