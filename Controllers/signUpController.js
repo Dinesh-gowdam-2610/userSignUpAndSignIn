@@ -345,7 +345,7 @@ const updateUser = async (req, res) => {
       .findOneAndUpdate(query, update, options)
       .select("username email phoneNumber");
 
-    console.log("updatedUser", updatedUser);
+    console.log("updatedUsers", updatedUser);
 
     if (!updatedUser) {
       return res.status(404).json({ message: USER_NOT_FOUND_ERROR });
